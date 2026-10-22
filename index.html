@@ -80,7 +80,8 @@ button,input,textarea,select{font:inherit}
 .btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
 
 /* acessos */
-.groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:20px 16px;align-items:start}
+.groups{columns:3 230px;column-gap:16px}
+.grp{break-inside:avoid;display:inline-block;width:100%;margin-bottom:20px}
 .grp h3{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 8px;display:flex;align-items:center;gap:8px}
 .grp h3 i{font-style:normal;background:var(--soft);border-radius:999px;padding:0 7px;font-size:10px;letter-spacing:0}
 .tiles{display:grid;gap:8px}
