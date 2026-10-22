@@ -20,7 +20,7 @@
 :root[data-theme="dark"]{--bg:#101b23;--surface:#172633;--fg:#e6eef5;--muted:#93a7b7;--line:#243746;--soft:#1c2e3c;--sky-soft:#1f3b52;color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.5}
-.wrap{max-width:1240px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1800px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
 a{color:inherit}
 button,input,textarea,select{font:inherit}
 :focus-visible{outline:3px solid var(--sky);outline-offset:2px}
@@ -57,7 +57,12 @@ button,input,textarea,select{font:inherit}
 @media (max-width:560px){.kpis .wrap{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi{border-left:0!important;padding-left:0!important;border-top:1px solid var(--line)}.kpi:nth-child(-n+2){border-top:0}}
 
 /* grade principal */
-.main{display:grid;grid-template-columns:minmax(0,8fr) minmax(0,4fr);gap:20px;padding-block:24px 56px}
+.main{display:grid;grid-template-columns:minmax(300px,1fr) minmax(0,2.2fr) minmax(300px,1fr);gap:20px;padding-block:24px 56px;align-items:start}
+@media (max-width:1300px){.main{grid-template-columns:minmax(0,2fr) minmax(0,1fr)}.col-l{order:2}.col-c{order:1;grid-row:span 2}.col-r{order:3}}
+.msg-card{background:linear-gradient(160deg,var(--sky-soft),var(--surface));position:relative;overflow:hidden}
+.msg-card blockquote{margin:0;font-family:var(--display);font-weight:600;font-size:17px;line-height:1.45;text-wrap:pretty;position:relative;padding-left:16px;border-left:3px solid var(--sky)}
+.msg-card cite{display:block;margin-top:10px;font-style:normal;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--sky)}
+.col-r .port{grid-template-columns:1fr}
 .col{display:grid;gap:20px;align-content:start;min-width:0}
 .row2{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
 .full{grid-column:1/-1}
@@ -214,7 +219,24 @@ dialog .btn{display:inline-flex}
 <section class="kpis"><div class="wrap" id="kpis"></div></section>
 
 <div class="wrap main" id="app">
-  <div class="col">
+  <div class="col col-l">
+    <section class="card news-card">
+      <div class="ch"><h2><svg class="ico"><use href="#i-info"/></svg>Informativos</h2><div class="sp"><button class="btn" data-add="news">+ Novo</button></div></div>
+      <div class="ticker" id="ticker"></div>
+      <div class="nfoot"><div class="dots" id="dots"></div><div class="bar"><i id="prog"></i></div></div>
+    </section>
+    <section class="card msg-card">
+      <div class="ch"><h2><svg class="ico"><use href="#i-sol"/></svg>Mensagem do dia</h2><span class="meta" id="msgDate"></span></div>
+      <blockquote id="msg"></blockquote><cite id="msgRef"></cite>
+    </section>
+    <section class="card">
+      <div class="ch"><h2><svg class="ico"><use href="#i-dolar"/></svg>Mercado</h2><span class="meta" id="mmeta"></span>
+        <div class="sp"><div class="tabs" role="tablist"><button class="on" data-tab="agro">Grãos</button><button data-tab="metal">Metais LME</button></div></div></div>
+      <div id="market"><div class="empty">Carregando cotações…</div></div>
+      <div style="margin-top:10px;display:flex;gap:14px"><a class="more" id="msrc" href="https://cotrisoja.com.br/historico-de-cotacoes/" target="_blank" rel="noopener">Histórico Cotrisoja ↗</a></div>
+    </section>
+  </div>
+  <div class="col col-c">
     <section class="card">
       <div class="ch"><h2><svg class="ico"><use href="#i-raio"/></svg>Acessos rápidos</h2><span class="meta" id="lcount"></span><div class="sp"><button class="btn" data-add="links">+ Novo link</button></div></div>
       <div class="groups" id="links"><div class="empty">Carregando…</div></div>
@@ -224,17 +246,8 @@ dialog .btn{display:inline-flex}
         <div class="sp"><a class="more" href="https://previsao.aquaeris.com.br/cliente/previsao5dias/3" target="_blank" rel="noopener">Aquaeris ↗</a><a class="more" href="https://www.windy.com/pt/-Radar-meteorol%C3%B3gico-radar?radar,-28.304,-52.589,7" target="_blank" rel="noopener">Radar ↗</a></div></div>
       <div id="wx"><div class="empty">Carregando previsão…</div></div>
     </section>
-      <section class="card">
-    <div class="ch"><h2><svg class="ico"><use href="#i-pasta"/></svg>Portfólio</h2><div class="sp"><button class="btn" data-add="portfolio">+ Novo projeto</button></div></div>
-    <div id="portfolio"><div class="empty">Carregando…</div></div>
-  </section>
   </div>
-  <div class="col">
-    <section class="card news-card">
-      <div class="ch"><h2><svg class="ico"><use href="#i-info"/></svg>Informativos</h2><div class="sp"><button class="btn" data-add="news">+ Novo</button></div></div>
-      <div class="ticker" id="ticker"></div>
-      <div class="nfoot"><div class="dots" id="dots"></div><div class="bar"><i id="prog"></i></div></div>
-    </section>
+  <div class="col col-r">
     <section class="card">
       <div class="ch"><h2><svg class="ico"><use href="#i-cal"/></svg>Agenda</h2><div class="sp"><span class="mname" id="month"></span><span class="cal-nav"><button id="prev" aria-label="Mês anterior">‹</button><button id="next" aria-label="Próximo mês">›</button></span></div></div>
       <div class="mini" id="days"></div>
@@ -242,13 +255,10 @@ dialog .btn{display:inline-flex}
       <div style="margin-top:12px"><button class="btn" data-add="events">+ Novo evento</button></div>
     </section>
     <section class="card">
-      <div class="ch"><h2><svg class="ico"><use href="#i-dolar"/></svg>Mercado</h2><span class="meta" id="mmeta"></span>
-        <div class="sp"><div class="tabs" role="tablist"><button class="on" data-tab="agro">Grãos</button><button data-tab="metal">Metais LME</button></div></div></div>
-      <div id="market"><div class="empty">Carregando cotações…</div></div>
-      <div style="margin-top:10px;display:flex;gap:14px"><a class="more" id="msrc" href="https://cotrisoja.com.br/historico-de-cotacoes/" target="_blank" rel="noopener">Histórico Cotrisoja ↗</a></div>
-    </section>
+    <div class="ch"><h2><svg class="ico"><use href="#i-pasta"/></svg>Portfólio</h2><div class="sp"><button class="btn" data-add="portfolio">+ Novo projeto</button></div></div>
+    <div id="portfolio"><div class="empty">Carregando…</div></div>
+  </section>
   </div>
-
 </div>
 
 <dialog id="dlg"><form id="frm" method="dialog"><h3 id="dlgT"></h3><div id="fields" style="display:grid;gap:12px"></div>
@@ -373,6 +383,9 @@ function renderMarket(){
   else{if(!M?.items)return;$("#mmeta").textContent="LME · "+(M.date||"");src.href="https://shockmetais.com.br/lme";src.textContent="Tabela LME completa ↗";
     $("#market").innerHTML=`<table>${M.items.map(i=>`<tr><td class="n">${ico(/d[oó]lar/i.test(i.name)?"dolar":"metal")}${esc(i.name)}</td><td class="v">${esc(i.price)} <span class="unit">${/d[oó]lar/i.test(i.name)?"R$":"US$/t"}</span></td><td class="c">${chg(i.change)}</td></tr>`).join("")}</table>`}
 }
+const MSGS=[["Tudo posso naquele que me fortalece.", "Filipenses 4:13"], ["Entrega o teu caminho ao Senhor, confia nele, e ele tudo fará.", "Salmos 37:5"], ["O Senhor é o meu pastor; nada me faltará.", "Salmos 23:1"], ["Esforça-te e tem bom ânimo; não temas, porque o Senhor teu Deus é contigo por onde quer que andares.", "Josué 1:9"], ["Tudo quanto fizerdes, fazei-o de todo o coração, como para o Senhor.", "Colossenses 3:23"], ["Vinde a mim, todos os que estais cansados e oprimidos, e eu vos aliviarei.", "Mateus 11:28"], ["Assim brilhe a vossa luz diante dos homens, para que vejam as vossas boas obras.", "Mateus 5:16"], ["Confia no Senhor de todo o teu coração, e não te estribes no teu próprio entendimento.", "Provérbios 3:5"], ["Não andeis ansiosos por coisa alguma; em tudo, porém, sejam conhecidas diante de Deus as vossas petições.", "Filipenses 4:6"], ["Deleita-te também no Senhor, e ele te concederá o que deseja o teu coração.", "Salmos 37:4"], ["Porque sou eu que conheço os planos que tenho para vós, planos de paz e não de mal, para vos dar o fim que esperais.", "Jeremias 29:11"], ["Os que esperam no Senhor renovarão as suas forças; subirão com asas como águias.", "Isaías 40:31"], ["O amor é paciente, o amor é bondoso.", "1 Coríntios 13:4"], ["Este é o dia que o Senhor fez; regozijemo-nos e alegremo-nos nele.", "Salmos 118:24"], ["Lâmpada para os meus pés é a tua palavra, e luz para o meu caminho.", "Salmos 119:105"], ["Bem-aventurados os pacificadores, porque eles serão chamados filhos de Deus.", "Mateus 5:9"], ["Sede fortes e corajosos; não temais, nem vos espanteis.", "Deuteronômio 31:6"], ["Consagra ao Senhor tudo o que fazes, e os teus planos serão bem-sucedidos.", "Provérbios 16:3"], ["Eu sou a luz do mundo; quem me segue não andará em trevas.", "João 8:12"], ["Deixo-vos a paz, a minha paz vos dou. Não se turbe o vosso coração.", "João 14:27"], ["Trabalho bem feito é aquele que você assinaria com orgulho. Capriche em cada detalhe hoje.", "Reflexão do dia"], ["Segurança em primeiro lugar: nenhuma pressa vale mais do que voltar bem para casa.", "Reflexão do dia"], ["Grandes obras são feitas de pequenas tarefas bem executadas, uma de cada vez.", "Reflexão do dia"], ["Quem planeja bem economiza no retrabalho. Pense antes, execute melhor.", "Reflexão do dia"], ["Um time unido vai mais longe do que qualquer talento sozinho.", "Reflexão do dia"], ["Cada cliente atendido com atenção é a melhor propaganda da empresa.", "Reflexão do dia"], ["Gratidão transforma o que temos em suficiente. Comece o dia agradecendo.", "Reflexão do dia"], ["Errar faz parte; aprender com o erro é o que faz a diferença.", "Reflexão do dia"], ["Energia boa também se transmite: leve bom humor para a equipe hoje.", "Reflexão do dia"], ["Constância vence talento quando o talento não é constante.", "Reflexão do dia"], ["A excelência não é um ato, é um hábito construído todos os dias.", "Reflexão do dia"]];
+(function(){const d=new Date(),doy=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);const[m,r]=MSGS[doy%MSGS.length];
+  $("#msg").textContent="“"+m+"”";$("#msgRef").textContent=r;$("#msgDate").textContent=d.toLocaleDateString("pt-BR",{day:"2-digit",month:"long"})})();
 function renderLive(){renderKpis();renderWx();renderMarket()}
 function renderPort(){
   const P=S.portfolio;if(!P.length){$("#portfolio").innerHTML='<div class="empty">Nenhum projeto no portfólio ainda.</div>';return}
