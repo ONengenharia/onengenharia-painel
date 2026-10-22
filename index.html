@@ -64,7 +64,14 @@ button,input,textarea,select{font:inherit}
 .msg-card cite{display:block;margin-top:10px;font-style:normal;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--sky)}
 .book{position:relative;aspect-ratio:760/1076;max-width:100%;border-radius:12px;overflow:hidden;background:#101b26}
 .book iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-.sat{position:relative;aspect-ratio:16/8;max-width:100%;border-radius:12px;overflow:hidden;background:var(--navy)}
+.solar{position:relative;height:340px;overflow:hidden;mask-image:linear-gradient(#000 85%,transparent)}
+.sol-track{display:grid;gap:8px;transition:transform .8s cubic-bezier(.4,0,.2,1)}
+.sol{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:start;text-decoration:none;padding:12px 14px;border:1px solid var(--line);border-radius:12px;min-height:66px}
+.sol:hover{border-color:var(--sky)}
+.sol .dt{grid-row:span 2;font-family:var(--display);font-weight:800;font-size:12px;color:var(--navy);background:var(--sky);border-radius:8px;padding:6px 8px;text-align:center;line-height:1.1;min-width:46px}
+.sol b{font-weight:600;font-size:14px;line-height:1.35}
+.sol small{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--sky)}
+.sat{position:relative;aspect-ratio:16/7;max-width:100%;border-radius:12px;overflow:hidden;background:var(--navy)}
 .sat iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .col-r .port{display:grid;grid-template-columns:1fr}
 .port.carousel .pc{grid-area:1/1;opacity:0;visibility:hidden;transition:opacity .6s,visibility .6s}
@@ -244,6 +251,11 @@ dialog .btn{display:inline-flex}
       <div id="market"><div class="empty">Carregando cotações…</div></div>
       <div style="margin-top:10px;display:flex;gap:14px"><a class="more" id="msrc" href="https://cotrisoja.com.br/historico-de-cotacoes/" target="_blank" rel="noopener">Histórico Cotrisoja ↗</a></div>
     </section>
+    <section class="card">
+      <div class="ch"><h2><svg class="ico"><use href="#i-sol"/></svg>Notícias do setor solar</h2><span class="meta" id="solUp"></span>
+        <div class="sp"><a class="more" href="https://canalsolar.com.br/" target="_blank" rel="noopener">Canal Solar ↗</a></div></div>
+      <div class="solar" id="solar"><div class="empty">Carregando notícias…</div></div>
+    </section>
   </div>
   <div class="col col-c">
     <section class="card">
@@ -401,7 +413,15 @@ function renderMarket(){
 const MSGS=[["Tudo posso naquele que me fortalece.", "Filipenses 4:13"], ["Entrega o teu caminho ao Senhor, confia nele, e ele tudo fará.", "Salmos 37:5"], ["O Senhor é o meu pastor; nada me faltará.", "Salmos 23:1"], ["Esforça-te e tem bom ânimo; não temas, porque o Senhor teu Deus é contigo por onde quer que andares.", "Josué 1:9"], ["Tudo quanto fizerdes, fazei-o de todo o coração, como para o Senhor.", "Colossenses 3:23"], ["Vinde a mim, todos os que estais cansados e oprimidos, e eu vos aliviarei.", "Mateus 11:28"], ["Assim brilhe a vossa luz diante dos homens, para que vejam as vossas boas obras.", "Mateus 5:16"], ["Confia no Senhor de todo o teu coração, e não te estribes no teu próprio entendimento.", "Provérbios 3:5"], ["Não andeis ansiosos por coisa alguma; em tudo, porém, sejam conhecidas diante de Deus as vossas petições.", "Filipenses 4:6"], ["Deleita-te também no Senhor, e ele te concederá o que deseja o teu coração.", "Salmos 37:4"], ["Porque sou eu que conheço os planos que tenho para vós, planos de paz e não de mal, para vos dar o fim que esperais.", "Jeremias 29:11"], ["Os que esperam no Senhor renovarão as suas forças; subirão com asas como águias.", "Isaías 40:31"], ["O amor é paciente, o amor é bondoso.", "1 Coríntios 13:4"], ["Este é o dia que o Senhor fez; regozijemo-nos e alegremo-nos nele.", "Salmos 118:24"], ["Lâmpada para os meus pés é a tua palavra, e luz para o meu caminho.", "Salmos 119:105"], ["Bem-aventurados os pacificadores, porque eles serão chamados filhos de Deus.", "Mateus 5:9"], ["Sede fortes e corajosos; não temais, nem vos espanteis.", "Deuteronômio 31:6"], ["Consagra ao Senhor tudo o que fazes, e os teus planos serão bem-sucedidos.", "Provérbios 16:3"], ["Eu sou a luz do mundo; quem me segue não andará em trevas.", "João 8:12"], ["Deixo-vos a paz, a minha paz vos dou. Não se turbe o vosso coração.", "João 14:27"], ["Trabalho bem feito é aquele que você assinaria com orgulho. Capriche em cada detalhe hoje.", "Reflexão do dia"], ["Segurança em primeiro lugar: nenhuma pressa vale mais do que voltar bem para casa.", "Reflexão do dia"], ["Grandes obras são feitas de pequenas tarefas bem executadas, uma de cada vez.", "Reflexão do dia"], ["Quem planeja bem economiza no retrabalho. Pense antes, execute melhor.", "Reflexão do dia"], ["Um time unido vai mais longe do que qualquer talento sozinho.", "Reflexão do dia"], ["Cada cliente atendido com atenção é a melhor propaganda da empresa.", "Reflexão do dia"], ["Gratidão transforma o que temos em suficiente. Comece o dia agradecendo.", "Reflexão do dia"], ["Errar faz parte; aprender com o erro é o que faz a diferença.", "Reflexão do dia"], ["Energia boa também se transmite: leve bom humor para a equipe hoje.", "Reflexão do dia"], ["Constância vence talento quando o talento não é constante.", "Reflexão do dia"], ["A excelência não é um ato, é um hábito construído todos os dias.", "Reflexão do dia"], ["Bom dia! Que hoje você encontre motivos para sorrir em cada pequena conquista.", "Bom dia"], ["Que o seu dia comece leve e termine com a sensação de dever cumprido.", "Bom dia"], ["Acorde com gratidão: um novo dia é uma nova chance de fazer diferente.", "Bom dia"], ["Bom dia! Que a paz te acompanhe em cada decisão e em cada conversa de hoje.", "Bom dia"], ["Que a energia boa desta manhã se espalhe por toda a equipe.", "Bom dia"], ["Hoje é dia de fazer o melhor que puder, com o que tem, onde estiver.", "Bom dia"], ["Bom dia! Que Deus abençoe seus caminhos e ilumine cada projeto.", "Bom dia"], ["Um sorriso logo cedo já é meio caminho andado para um ótimo dia.", "Bom dia"], ["Que o café seja forte, a fé seja maior e o dia seja abençoado.", "Bom dia"], ["Bom dia! Pequenos passos todos os dias levam a grandes lugares.", "Bom dia"], ["Comece o dia acreditando: o que é seu está guardado e vai chegar.", "Bom dia"], ["Que hoje você seja luz para quem cruzar o seu caminho.", "Bom dia"]];
 (function(){const d=new Date(),doy=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);const[m,r]=MSGS[doy%MSGS.length];
   $("#msg").textContent="“"+m+"”";$("#msgRef").textContent=r;$("#msgDate").textContent=d.toLocaleDateString("pt-BR",{day:"2-digit",month:"long"})})();
-function renderLive(){renderKpis();renderWx();renderMarket()}
+let si=0,stimer=null;
+function renderSolar(){const N=S.live.find(d=>d.id==="solar");if(!N?.items?.length)return;
+  $("#solUp").textContent=N.updated?"Atualizado "+new Date(N.updated).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"";
+  const it=N.items,row=x=>`<a class="sol" href="${esc(x.url)}" target="_blank" rel="noopener"><span class="dt">${esc(x.date||"novo")}</span><b>${esc(x.title)}</b>${x.cat?`<small>${esc(x.cat)}</small>`:"<small></small>"}</a>`;
+  $("#solar").innerHTML=`<div class="sol-track" id="solT">${[...it,...it.slice(0,4)].map(row).join("")}</div>`;
+  si=0;clearInterval(stimer);if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;
+  stimer=setInterval(()=>{const t=$("#solT");if(!t||$("#solar").matches(":hover"))return;si++;const h=t.children[0].offsetHeight+8;t.style.transform=`translateY(${-si*h}px)`;
+    if(si>=it.length){setTimeout(()=>{t.style.transition="none";si=0;t.style.transform="none";t.offsetHeight;t.style.transition=""},850)}},4500)}
+function renderLive(){renderKpis();renderWx();renderMarket();renderSolar()}
 function renderPort(){if(!$("#portfolio"))return;
   const P=S.portfolio;if(!P.length){$("#portfolio").innerHTML='<div class="empty">Nenhum projeto no portfólio ainda.</div>';return}
   const ph='<svg class="ph" viewBox="0 0 1000 700" fill="none" stroke="#64ABDE" stroke-width="10"><path d="M200 140c170 0 260 150 260 300 0 170-130 250-260 250S-40 600-40 440 60 140 200 140Z"/><path d="M330 20 L520 -60 L820 120 L760 -10 L940 -60 L1080 260 L700 40 L860 380 L380 700 C500 600 600 500 560 380 C520 260 400 120 330 20Z"/></svg>';
