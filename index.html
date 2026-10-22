@@ -62,7 +62,13 @@ button,input,textarea,select{font:inherit}
 .msg-card{background:linear-gradient(160deg,var(--sky-soft),var(--surface));position:relative;overflow:hidden}
 .msg-card blockquote{margin:0;font-family:var(--display);font-weight:600;font-size:17px;line-height:1.45;text-wrap:pretty;position:relative;padding-left:16px;border-left:3px solid var(--sky)}
 .msg-card cite{display:block;margin-top:10px;font-style:normal;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--sky)}
-.col-r .port{grid-template-columns:1fr}
+.sat{position:relative;aspect-ratio:16/8;max-width:100%;border-radius:12px;overflow:hidden;background:var(--navy)}
+.sat iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.col-r .port{display:grid;grid-template-columns:1fr}
+.port.carousel .pc{grid-area:1/1;opacity:0;visibility:hidden;transition:opacity .6s,visibility .6s}
+.port.carousel .pc.on{opacity:1;visibility:visible}
+.pdots{display:flex;gap:5px;justify-content:center;margin-top:12px}.pdots button{width:7px;height:7px;border-radius:4px;border:0;background:var(--line);padding:0;cursor:pointer;transition:width .3s}
+.pdots button.on{width:20px;background:var(--sky)}
 .col{display:grid;gap:20px;align-content:start;min-width:0}
 .row2{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
 .full{grid-column:1/-1}
@@ -247,6 +253,11 @@ dialog .btn{display:inline-flex}
         <div class="sp"><a class="more" href="https://previsao.aquaeris.com.br/cliente/previsao5dias/3" target="_blank" rel="noopener">Aquaeris ↗</a><a class="more" href="https://www.windy.com/pt/-Radar-meteorol%C3%B3gico-radar?radar,-28.304,-52.589,7" target="_blank" rel="noopener">Radar ↗</a></div></div>
       <div id="wx"><div class="empty">Carregando previsão…</div></div>
     </section>
+    <section class="card">
+      <div class="ch"><h2><svg class="ico"><use href="#i-nublado"/></svg>Satélite e radar</h2><span class="meta">Noroeste do RS</span>
+        <div class="sp"><div class="tabs"><button class="on" data-sat="satellite">Satélite</button><button data-sat="radar">Radar</button><button data-sat="rain">Chuva</button></div></div></div>
+      <div class="sat"><iframe id="satFrame" title="Imagem de satélite" loading="lazy" src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=%C2%B0C&metricWind=km%2Fh&zoom=6&overlay=satellite&product=satellite&level=surface&lat=-28.6&lon=-52.8&marker=true&message=true"></iframe></div>
+    </section>
   </div>
   <div class="col col-r">
     <section class="card">
@@ -391,12 +402,18 @@ function renderLive(){renderKpis();renderWx();renderMarket()}
 function renderPort(){
   const P=S.portfolio;if(!P.length){$("#portfolio").innerHTML='<div class="empty">Nenhum projeto no portfólio ainda.</div>';return}
   const ph='<svg class="ph" viewBox="0 0 1000 700" fill="none" stroke="#64ABDE" stroke-width="10"><path d="M200 140c170 0 260 150 260 300 0 170-130 250-260 250S-40 600-40 440 60 140 200 140Z"/><path d="M330 20 L520 -60 L820 120 L760 -10 L940 -60 L1080 260 L700 40 L860 380 L380 700 C500 600 600 500 560 380 C520 260 400 120 330 20Z"/></svg>';
-  $("#portfolio").innerHTML=`<div class="port">${[...P].sort((a,b)=>b.created-a.created).map(p=>{const href=p.url||(p.img?p.img:"");
-    return`<article class="pc">${tools("portfolio",p.id)}
+  const L=[...P].sort((a,b)=>b.created-a.created);pi%=L.length;
+  $("#portfolio").innerHTML=`<div class="port${L.length>1?" carousel":""}">${L.sort((a,b)=>b.created-a.created).map(p=>{const href=p.url||(p.img?p.img:"");
+    return`<article class="pc${L.indexOf(p)===pi?" on":""}">${tools("portfolio",p.id)}
     <a class="cover" ${href?`href="${esc(href)}" target="_blank" rel="noopener"`:""}>${p.img?`<img src="${esc(p.img)}" alt="">`:ph}${p.kind?`<span class="badge">${esc(p.kind)}</span>`:""}</a>
     <div class="b"><h4>${esc(p.title)}</h4>${p.desc?`<p>${esc(p.desc)}</p>`:""}</div>
-    <div class="act">${p.url?`<a href="${esc(p.url)}" target="_blank" rel="noopener">${ico("open")}Abrir</a><button data-share="${esc(p.id)}">${ico("share")}Compartilhar</button>`:'<span class="none">Adicione um link para abrir e compartilhar.</span>'}</div></article>`}).join("")}</div>`;
+    <div class="act">${p.url?`<a href="${esc(p.url)}" target="_blank" rel="noopener">${ico("open")}Abrir</a><button data-share="${esc(p.id)}">${ico("share")}Compartilhar</button>`:'<span class="none">Adicione um link para abrir e compartilhar.</span>'}</div></article>`}).join("")}</div>${L.length>1?`<div class="pdots">${L.map((_,i)=>`<button class="${i===pi?"on":""}" data-p="${i}" aria-label="Projeto ${i+1}"></button>`).join("")}</div>`:""}`;
+  clearTimeout(ptimer);if(L.length>1&&!document.body.classList.contains("editing"))ptimer=setTimeout(()=>{pi++;renderPort()},6000);
 }
+let pi=0,ptimer=null;
+document.addEventListener("click",e=>{const b=e.target.closest("[data-p]");if(b){pi=+b.dataset.p;renderPort()}
+  const sb=e.target.closest("[data-sat]");if(sb){document.querySelectorAll("[data-sat]").forEach(x=>x.classList.toggle("on",x===sb));const o=sb.dataset.sat;
+    $("#satFrame").src=`https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=%C2%B0C&metricWind=km%2Fh&zoom=6&overlay=${o}&product=${o==="rain"?"ecmwf":o}&level=surface&lat=-28.6&lon=-52.8&marker=true&message=true`}});
 let ni=0,timer=null;const DUR=7000;
 function renderNews(){
   const N=[...S.news].sort((a,b)=>(b.date||"").localeCompare(a.date||""));
