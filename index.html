@@ -71,6 +71,18 @@ button,input,textarea,select{font:inherit}
 .sol .dt{grid-row:span 2;font-family:var(--display);font-weight:800;font-size:12px;color:var(--navy);background:var(--sky);border-radius:8px;padding:6px 8px;text-align:center;line-height:1.1;min-width:46px}
 .sol b{font-weight:600;font-size:14px;line-height:1.35}
 .sol small{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--sky)}
+.ext{display:grid;gap:10px}
+.ext-in{display:flex;align-items:center;border:1.5px solid var(--line);border-radius:10px;background:var(--soft);padding:0 12px}
+.ext-in:focus-within{border-color:var(--sky)}
+.ext-in span{font-family:var(--display);font-weight:700;color:var(--muted)}
+.ext-in input{flex:1;min-width:0;border:0;background:transparent;color:var(--fg);font-family:var(--display);font-weight:700;font-size:18px;padding:10px 8px;outline:none;font-variant-numeric:tabular-nums}
+.ext-mode{justify-self:start}
+.ext-out{margin:0;font-weight:600;line-height:1.45;min-height:42px;padding:10px 12px;border-radius:10px;background:var(--sky-soft)}
+.btn-copy{justify-self:start;border:1px solid var(--line);background:transparent;color:var(--fg);font-weight:700;font-size:12px;border-radius:8px;padding:7px 12px;cursor:pointer}
+.game-card{background:linear-gradient(135deg,var(--navy),#2a4a63);color:#fff;border:0}
+.game-card h2{color:#fff}.game-card .none,.game-card .meta{color:#b9cddd}
+.play{display:inline-flex;align-items:center;gap:8px;background:var(--sky);color:var(--navy);font-family:var(--display);font-weight:800;font-size:15px;text-decoration:none;border-radius:999px;padding:11px 22px}
+.play:hover{background:#fff}
 .sat{position:relative;aspect-ratio:16/7;max-width:100%;border-radius:12px;overflow:hidden;background:var(--navy)}
 .sat iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .col-r .port{display:grid;grid-template-columns:1fr}
@@ -285,6 +297,20 @@ dialog .btn{display:inline-flex}
     <div class="book"><iframe src="portfolio.html?auto=1" title="Portfólio ON Engenharia" loading="lazy"></iframe></div>
     <div class="pc" style="border:0"><div class="act" style="padding:12px 0 0"><a href="portfolio.html" target="_blank" rel="noopener"><svg class="ico"><use href="#i-open"/></svg>Abrir em tela cheia</a><button id="sharePort"><svg class="ico"><use href="#i-share"/></svg>Compartilhar</button></div></div>
   </section>
+    <section class="card">
+      <div class="ch"><h2><svg class="ico"><use href="#i-dolar"/></svg>Valor por extenso</h2><div class="sp"><a class="more" href="https://www.invertexto.com/numeros-por-extenso" target="_blank" rel="noopener">invertexto ↗</a></div></div>
+      <div class="ext">
+        <div class="ext-in"><span>R$</span><input id="extV" inputmode="decimal" placeholder="1.250,50" aria-label="Valor em reais"></div>
+        <div class="ext-mode tabs"><button class="on" data-ext="r">Reais</button><button data-ext="n">Só número</button></div>
+        <p id="extOut" class="ext-out">Digite um valor acima.</p>
+        <button class="btn-copy" id="extCopy">Copiar texto</button>
+      </div>
+    </section>
+    <section class="card game-card">
+      <div class="ch"><h2><svg class="ico"><use href="#i-raio"/></svg>Missão ON</h2><span class="meta">Jogo da equipe</span></div>
+      <p class="none" style="margin:0 0 14px">Um desafio rápido com perguntas sobre segurança e eletricidade. Use as setas para andar e o espaço para pular.</p>
+      <a class="play" href="jogo.html" target="_blank" rel="noopener">▶ Jogar</a>
+    </section>
   </div>
 </div>
 
@@ -433,6 +459,30 @@ function renderPort(){if(!$("#portfolio"))return;
     <div class="act">${p.url?`<a href="${esc(p.url)}" target="_blank" rel="noopener">${ico("open")}Abrir</a><button data-share="${esc(p.id)}">${ico("share")}Compartilhar</button>`:'<span class="none">Adicione um link para abrir e compartilhar.</span>'}</div></article>`}).join("")}</div>${L.length>1?`<div class="pdots">${L.map((_,i)=>`<button class="${i===pi?"on":""}" data-p="${i}" aria-label="Projeto ${i+1}"></button>`).join("")}</div>`:""}`;
   clearTimeout(ptimer);if(L.length>1&&!document.body.classList.contains("editing"))ptimer=setTimeout(()=>{pi++;renderPort()},6000);
 }
+
+/* valor por extenso */
+const U=["","um","dois","três","quatro","cinco","seis","sete","oito","nove","dez","onze","doze","treze","quatorze","quinze","dezesseis","dezessete","dezoito","dezenove"],
+ D=["","","vinte","trinta","quarenta","cinquenta","sessenta","setenta","oitenta","noventa"],
+ C=["","cento","duzentos","trezentos","quatrocentos","quinhentos","seiscentos","setecentos","oitocentos","novecentos"];
+function ate999(n){if(n===100)return"cem";const c=Math.floor(n/100),r=n%100,p=[];if(c)p.push(C[c]);if(r){if(r<20)p.push(U[r]);else{const d=Math.floor(r/10),u=r%10;p.push(u?D[d]+" e "+U[u]:D[d])}}return p.join(" e ")}
+function inteiro(n){if(n===0)return"zero";const esc=[["",""],["mil","mil"],["milhão","milhões"],["bilhão","bilhões"],["trilhão","trilhões"]];
+  const g=[];let x=n;while(x>0){g.push(x%1000);x=Math.floor(x/1000)}
+  const partes=[];for(let i=g.length-1;i>=0;i--){const v=g[i];if(!v)continue;let t;
+    if(i===1)t=v===1?"mil":ate999(v)+" mil";else if(i===0)t=ate999(v);else t=ate999(v)+" "+(v===1?esc[i][0]:esc[i][1]);partes.push({t,v,i})}
+  let out="";partes.forEach((p,k)=>{if(k===0){out=p.t;return}const last=k===partes.length-1;out+=(last&&(p.v<100||p.v%100===0))?" e ":" ";out+=p.t});
+  return out}
+function porExtenso(str,modo){let s=String(str).trim().replace(/[^\d,.-]/g,"");if(!s)return"";
+  if(s.includes(","))s=s.replace(/\./g,"").replace(",",".");else if((s.match(/\./g)||[]).length>1||/\.\d{3}$/.test(s))s=s.replace(/\./g,"");
+  const v=Number(s);if(!isFinite(v)||v<0||v>=1e15)return"Valor inválido.";
+  const cent=Math.round(v*100),R=Math.floor(cent/100),c=cent%100;
+  if(modo==="n"){let t=inteiro(R);if(c)t+=" vírgula "+inteiro(c);return t.charAt(0).toUpperCase()+t.slice(1)}
+  const p=[];if(R){let t=inteiro(R);const de=R%1e6===0?" de":"";p.push(t+de+(R===1?" real":" reais"))}
+  if(c)p.push(inteiro(c)+(c===1?" centavo":" centavos"));if(!p.length)return"Zero real";
+  let t=p.join(" e ");return t.charAt(0).toUpperCase()+t.slice(1)}
+let extMode="r";const extRun=()=>{const o=porExtenso($("#extV").value,extMode);$("#extOut").textContent=o||"Digite um valor acima."};
+$("#extV").addEventListener("input",extRun);
+document.querySelectorAll("[data-ext]").forEach(b=>b.onclick=()=>{extMode=b.dataset.ext;document.querySelectorAll("[data-ext]").forEach(x=>x.classList.toggle("on",x===b));extRun()});
+$("#extCopy").onclick=async()=>{const t=$("#extOut").textContent;try{await navigator.clipboard.writeText(t);toast("Texto copiado.")}catch{toast(t)}};
 let pi=0,ptimer=null;
 $("#sharePort").onclick=()=>share(new URL("portfolio.html",location.href).href,"Portfólio ON Engenharia");
 document.addEventListener("click",e=>{const b=e.target.closest("[data-p]");if(b){pi=+b.dataset.p;renderPort()}
