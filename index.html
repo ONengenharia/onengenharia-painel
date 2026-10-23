@@ -320,13 +320,20 @@ dialog .btn{display:inline-flex}
 
 <script>
 /* Conexão com o Supabase (projeto on-painel) */
-const SB="https://uxfrpkyisikimxjqwtlk.supabase.co",SBK="sb_publishable_flu4WG7E2_zevjGO7F1fZA_P8DbbNUU";
+const SB="https://qphayphqrwyvhesykpmb.supabase.co",SBK="sb_publishable_xOlRcmtdSVpXPxFjLHr4bA_VkAdGQIE";
+/* projeto antigo: usado só para trazer os dados na primeira vez */
+const OLD="https://uxfrpkyisikimxjqwtlk.supabase.co",OLDK="sb_publishable_flu4WG7E2_zevjGO7F1fZA_P8DbbNUU";
+let migrar=null;
 const H={apikey:SBK,Authorization:"Bearer "+SBK,"Content-Type":"application/json"};
 let SENHA=null;try{SENHA=sessionStorage.getItem("onSenha")}catch{}
 async function rpc(fn,body){const r=await fetch(SB+"/rest/v1/rpc/"+fn,{method:"POST",headers:H,body:JSON.stringify(body)});
   if(!r.ok){const t=await r.text();throw new Error(/senha/.test(t)?"senha":"erro")}return r.status===204?null:r.json()}
 const subs={};let rows=[];
-async function pull(){try{const r=await fetch(SB+"/rest/v1/painel_itens?select=*",{headers:H});if(!r.ok)throw 0;rows=await r.json();
+async function pull(){try{let r=await fetch(SB+"/rest/v1/painel_itens?select=*",{headers:H});
+  if(!r.ok){r=await fetch(OLD+"/rest/v1/painel_itens?select=*",{headers:{apikey:OLDK,Authorization:"Bearer "+OLDK}});if(!r.ok)throw 0;rows=await r.json();for(const c in subs)subs[c]({docs:rows.filter(x=>x.colecao===c).map(x=>({id:x.id,data:()=>({created:x.criado,...x.dados})}))});return}
+  rows=await r.json();
+  if(!rows.some(x=>x.colecao!=="live")){try{const o=await fetch(OLD+"/rest/v1/painel_itens?select=*&colecao=neq.live",{headers:{apikey:OLDK,Authorization:"Bearer "+OLDK}});
+    if(o.ok){const old=await o.json();if(old.length){migrar=old;rows=rows.concat(old)}}}catch{}}else migrar=null;
   for(const c in subs)subs[c]({docs:rows.filter(x=>x.colecao===c).map(x=>({id:x.id,data:()=>({created:x.criado,...x.dados})}))})}catch{}}
 const DB={collection:c=>({onSnapshot:f=>{subs[c]=f},doc:id=>({
   set:async d=>{await rpc("painel_salvar",{senha:SENHA,colecao:c,id,dados:d});pull()},
@@ -527,7 +534,9 @@ $("#pwCancel").onclick=()=>{pwd.close();$("#adminSw").checked=false};
 $("#pf").addEventListener("submit",async e=>{e.preventDefault();const p=$("#pw").value;$("#pwErr").hidden=true;
   try{const ok=await rpc("painel_ok",{senha:p});if(!ok){$("#pwErr").hidden=false;return}
     const nv=$("#pwNew").value.trim();if(nv){await rpc("painel_trocar_senha",{senha:p,nova:nv});SENHA=nv;toast("Senha alterada.")}else SENHA=p;
-    try{sessionStorage.setItem("onSenha",SENHA)}catch{}pwd.close();setEdit(true);$("#adminSw").checked=true}
+    try{sessionStorage.setItem("onSenha",SENHA)}catch{}pwd.close();setEdit(true);$("#adminSw").checked=true;
+    if(migrar){toast("Copiando os dados do painel antigo…");let n=0;for(const x of migrar){try{await rpc("painel_salvar",{senha:SENHA,colecao:x.colecao,id:x.id,dados:{created:x.criado,...x.dados}});n++}catch{}}
+      migrar=null;await pull();toast(n+" itens copiados para o novo banco.")}}
   catch{$("#pwErr").textContent="Não foi possível verificar a senha.";$("#pwErr").hidden=false}});
 $("#adminSw").addEventListener("change",e=>{if(e.target.checked){if(SENHA){setEdit(true)}else{e.target.checked=false;$("#pw").value="";$("#pwNew").value="";pwd.showModal()}}else{setEdit(false)}});
 db=DB;assets=true;
