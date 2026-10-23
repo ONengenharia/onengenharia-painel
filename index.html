@@ -535,10 +535,13 @@ $("#pf").addEventListener("submit",async e=>{e.preventDefault();const p=$("#pw")
   try{const ok=await rpc("painel_ok",{senha:p});if(!ok){$("#pwErr").hidden=false;return}
     const nv=$("#pwNew").value.trim();if(nv){await rpc("painel_trocar_senha",{senha:p,nova:nv});SENHA=nv;toast("Senha alterada.")}else SENHA=p;
     try{sessionStorage.setItem("onSenha",SENHA)}catch{}pwd.close();setEdit(true);$("#adminSw").checked=true;
+    migrarAgora()}
+  catch{$("#pwErr").textContent="Não foi possível verificar a senha.";$("#pwErr").hidden=false}});
+async function migrarAgora(){
     if(migrar){toast("Copiando os dados do painel antigo…");let n=0;for(const x of migrar){try{await rpc("painel_salvar",{senha:SENHA,colecao:x.colecao,id:x.id,dados:{created:x.criado,...x.dados}});n++}catch{}}
       migrar=null;await pull();toast(n+" itens copiados para o novo banco.")}}
-  catch{$("#pwErr").textContent="Não foi possível verificar a senha.";$("#pwErr").hidden=false}});
-$("#adminSw").addEventListener("change",e=>{if(e.target.checked){if(SENHA){setEdit(true)}else{e.target.checked=false;$("#pw").value="";$("#pwNew").value="";pwd.showModal()}}else{setEdit(false)}});
+$("#adminSw").addEventListener("change",async e=>{if(e.target.checked){let ok=false;if(SENHA){try{ok=await rpc("painel_ok",{senha:SENHA})}catch{}}
+  if(ok){setEdit(true);migrarAgora()}else{SENHA=null;try{sessionStorage.removeItem("onSenha")}catch{}e.target.checked=false;$("#pw").value="";$("#pwNew").value="";pwd.showModal()}}else{setEdit(false)}});
 db=DB;assets=true;
 for(const k of Object.keys(S))db.collection(k).onSnapshot(s=>{S[k]=s.docs.map(d=>({id:d.id,...d.data()}));R[k]()});
 pull();setInterval(pull,5*60*1000);
