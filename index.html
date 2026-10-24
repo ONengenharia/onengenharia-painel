@@ -422,7 +422,7 @@ const chg=c=>!c?"":`<em class="${String(c).startsWith("-")?"dn":"up"}">${String(
 let tab="agro";
 function renderKpis(){
   const W=S.live.find(d=>d.id==="weather"),Q=S.live.find(d=>d.id==="quotes"),M=S.live.find(d=>d.id==="metals");
-  const k=[];const w=W?.days?.[0];
+  const k=[];const hj=iso(new Date());const w=(W?.days||[]).find(d=>!d.date||d.date>=hj);
   if(w)k.push(`<div class="kpi">${ico(w.icon||"nublado")}<div><small>Hoje</small><strong>${esc(w.max)}° <span class="unit">/ ${esc(w.min)}°</span></strong><em style="color:var(--sky)">${esc(w.rain)} mm de chuva</em></div></div>`);
   const qi=n=>Q?.items?.find(i=>key(i.name)===n),mi=n=>M?.items?.find(i=>key(i.name).startsWith(n));
   [["soja","Soja"],["milho","Milho"]].forEach(([n,l])=>{const i=qi(n);if(i)k.push(`<div class="kpi">${ico(n)}<div><small>${l} · saca</small><strong>R$ ${esc(i.price)}</strong><em style="color:var(--muted);font-weight:500">Cotrisoja</em></div></div>`)});
@@ -432,8 +432,11 @@ function renderKpis(){
 }
 function renderWx(){
   const W=S.live.find(d=>d.id==="weather");if(!W?.days)return;
-  $("#wx").innerHTML=`<div class="wx">${W.days.map(d=>`<div class="wd" title="${esc(d.cond)}${d.alert?" · Alerta: "+esc(d.alert):""}">${d.alert?'<span class="al"></span>':""}<span class="n">${esc(d.label)}</span>${ico(["sol","nuvem","nublado","chuva","tempestade"].includes(d.icon)?d.icon:"nublado")}<span class="t">${esc(d.max)}° <em>${esc(d.min)}°</em></span><span class="r">${esc(d.rain)} mm</span></div>`).join("")}</div>`+
-    (W.days.some(d=>d.alert)?'<div class="legend"><i></i>Dia com alerta meteorológico</div>':"");
+  const hoje=iso(new Date()),DW=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+  let days=W.days.map(d=>d.date?{...d,label:DW[new Date(d.date+"T12:00").getDay()]+" "+d.date.slice(8)}:d).filter(d=>!d.date||d.date>=hoje);
+  if(!days.length)days=W.days;
+  $("#wx").innerHTML=`<div class="wx" style="grid-template-columns:repeat(${days.length},minmax(0,1fr))">${days.map(d=>`<div class="wd" title="${esc(d.cond)}${d.alert?" · Alerta: "+esc(d.alert):""}">${d.alert?'<span class="al"></span>':""}<span class="n">${esc(d.label)}</span>${ico(["sol","nuvem","nublado","chuva","tempestade"].includes(d.icon)?d.icon:"nublado")}<span class="t">${esc(d.max)}° <em>${esc(d.min)}°</em></span><span class="r">${esc(d.rain)} mm</span></div>`).join("")}</div>`+
+    (days.some(d=>d.alert)?'<div class="legend"><i></i>Dia com alerta meteorológico</div>':"");
 }
 function renderMarket(){
   const Q=S.live.find(d=>d.id==="quotes"),M=S.live.find(d=>d.id==="metals");
