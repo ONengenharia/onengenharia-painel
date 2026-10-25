@@ -307,6 +307,11 @@ dialog .btn{display:inline-flex}
       </div>
     </section>
     <section class="card game-card">
+      <div class="ch"><h2><svg class="ico"><use href="#i-sol"/></svg>Simulador solar</h2><span class="meta">Link para campanhas</span></div>
+      <p class="none" style="margin:0 0 14px">O cliente deixa nome e WhatsApp e vê na hora o tamanho e o valor estimado do sistema.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="play" href="simulador.html" target="_blank" rel="noopener">Abrir simulador</a><button class="btn-copy" id="simCopy" style="color:#fff;border-color:rgba(255,255,255,.35)">Copiar link do Instagram</button></div>
+    </section>
+    <section class="card game-card">
       <div class="ch"><h2><svg class="ico"><use href="#i-raio"/></svg>Missão ON</h2><span class="meta">Jogo da equipe</span></div>
       <p class="none" style="margin:0 0 14px">Um desafio rápido com perguntas sobre segurança e eletricidade. Use as setas para andar e o espaço para pular.</p>
       <a class="play" href="jogo.html" target="_blank" rel="noopener">▶ Jogar</a>
@@ -493,6 +498,7 @@ let extMode="r";const extRun=()=>{const o=porExtenso($("#extV").value,extMode);$
 $("#extV").addEventListener("input",extRun);
 document.querySelectorAll("[data-ext]").forEach(b=>b.onclick=()=>{extMode=b.dataset.ext;document.querySelectorAll("[data-ext]").forEach(x=>x.classList.toggle("on",x===b));extRun()});
 $("#extCopy").onclick=async()=>{const t=$("#extOut").textContent;try{await navigator.clipboard.writeText(t);toast("Texto copiado.")}catch{toast(t)}};
+$("#simCopy").onclick=async()=>{const u=new URL("simulador.html?origem=instagram",location.href).href;try{await navigator.clipboard.writeText(u);toast("Link copiado: "+u)}catch{toast(u)}};
 let pi=0,ptimer=null;
 $("#sharePort").onclick=()=>share(new URL("portfolio.html",location.href).href,"Portfólio ON Engenharia");
 document.addEventListener("click",e=>{const b=e.target.closest("[data-p]");if(b){pi=+b.dataset.p;renderPort()}

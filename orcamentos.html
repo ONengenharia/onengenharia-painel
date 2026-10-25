@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>ON Engenharia - Base de Preços Solar</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root{--grafite:#262624;--grafite2:#3a3a37;--azul:#63A9DF;--azul-esc:#2F7FBF;--azul-claro:#E3F0FA;--cinza:#f3f3f1;--alerta:#854F0B;--alerta-bg:#FAEEDA}
+*{box-sizing:border-box}
+body{font-family:Segoe UI,Arial,sans-serif;background:var(--cinza);color:var(--grafite);margin:0}
+header{background:var(--grafite);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:4px solid var(--azul)}
+header .tit{color:#fff;font-size:18px;font-weight:600}
+header .tit span{color:var(--azul)}
+.logo{height:60px;display:block}
+.wrap{max-width:1200px;margin:24px auto;padding:0 16px}
+.card{background:#fff;border-radius:12px;padding:20px 24px;margin-bottom:18px}
+h2{font-size:16px;margin:0 0 12px;padding-bottom:6px;border-bottom:2px solid var(--azul);text-transform:uppercase;letter-spacing:.8px}
+h3{font-size:14px;margin:16px 0 8px;color:var(--azul-esc)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.kpi{background:var(--azul-claro);border-radius:10px;padding:14px 16px}
+.kpi .l{font-size:13px;color:#555}
+.kpi .v{font-size:24px;font-weight:600;color:var(--grafite);margin-top:4px}
+.kpi .s{font-size:12px;color:#666;margin-top:4px}
+.kpi.dest{background:var(--grafite)}
+.kpi.dest .l,.kpi.dest .s{color:#ccc}
+.kpi.dest .v{color:var(--azul)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:18px}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;align-items:end}
+.form label{display:block;font-size:13px;color:#666;margin-bottom:4px}
+.form input,.form select{width:100%;height:38px;padding:0 10px;border:1px solid #ccc;border-radius:8px;font-size:15px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{background:var(--grafite);color:#fff;font-weight:600;text-align:left;padding:8px 10px;white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid #e5e5e2;vertical-align:middle}
+tr:nth-child(even) td{background:#fafaf8}
+tr.clic{cursor:pointer}
+tr.clic:hover td{background:var(--azul-claro)}
+td.n,th.n{text-align:right}
+.scroll{overflow-x:auto}
+.drop{border:2px dashed var(--azul);border-radius:12px;padding:26px;text-align:center;background:var(--azul-claro);cursor:pointer}
+.drop.over{background:#cfe4f6}
+.drop b{color:var(--azul-esc)}
+button{height:36px;padding:0 14px;border:1px solid var(--grafite);background:#fff;color:var(--grafite);border-radius:8px;font-size:14px;cursor:pointer}
+button:hover{background:var(--azul-claro)}
+.acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.ed{width:80px;height:30px;padding:0 6px;border:1px solid #ccc;border-radius:6px;font-size:13px;text-align:right}
+.ed.w{width:105px}
+select.ed{text-align:left;width:130px}
+.aviso{background:var(--alerta-bg);color:var(--alerta);border-radius:4px;padding:1px 6px;font-size:12px;white-space:nowrap}
+.log{font-size:13px;margin-top:10px;line-height:1.6}
+.log .ok{color:#3B6D11}.log .er{color:#A32D2D}
+.del{border:none;background:none;color:#A32D2D;cursor:pointer;font-size:16px;height:auto;padding:0 4px}
+.off td{opacity:.45}
+.muted{font-size:12px;color:#777}
+.nota{font-size:13px;color:#555;margin-top:10px;line-height:1.5}
+</style>
+</head>
+<body>
+<header>
+  <div id="logo"></div>
+  <div class="tit">Painel de <span>orçamentos solar</span></div>
+</header>
+
+<div class="wrap">
+<div class="card" id="login">
+  <h2>Entrar</h2>
+  <form id="fLogin" class="form" style="max-width:420px">
+    <div><label>Senha do painel</label><input id="senha" type="password" autocomplete="current-password" required></div>
+    <div><button type="submit" style="width:100%">Entrar</button></div>
+  </form>
+  <p class="muted" id="loginMsg" style="margin:10px 0 0">Use a mesma senha de edição do painel ON.</p>
+</div>
+<div id="app" hidden>
+<div class="card">
+  <h2>Contatos do simulador</h2>
+  <p class="muted" style="margin:0 0 10px">Quem preencheu o simulador do site. O contato é gravado assim que a pessoa libera a simulação, mesmo que não chegue ao resultado.</p>
+  <div class="acoes" style="margin:0 0 10px"><button id="bLeads">Atualizar</button><button id="bLeadsCsv">Exportar contatos (CSV)</button><span class="muted" id="leadsInfo" style="align-self:center"></span></div>
+  <div class="scroll" id="tLeads"></div>
+</div>
+<div class="card">
+  <h2>Tarifas das concessionárias</h2>
+  <p class="muted" style="margin:0 0 10px">Tarifa residencial (B1) homologada pela ANEEL, em R$/kWh, <b>sem impostos</b>. O simulador soma os impostos usando o percentual abaixo.</p>
+  <div class="form" style="max-width:520px;margin-bottom:12px">
+    <div><label>Impostos sobre a tarifa (ICMS + PIS/COFINS), %</label><input id="imp" inputmode="decimal"></div>
+    <div><label>Fonte / observação</label><input id="tFonte"></div>
+  </div>
+  <div class="scroll" id="tTar"></div>
+  <div class="acoes"><button id="bTarAdd">+ Concessionária</button><button id="bTarSave">Salvar tarifas</button><span class="muted" id="tarMsg" style="align-self:center"></span></div>
+</div>
+
+<div class="card">
+  <h2>Consultar valor por combinação</h2>
+  <div class="form">
+    <div><label>Potência do inversor (kW)</label><input id="qKw" value="5" inputmode="decimal"></div>
+    <div><label>Qtd de inversores</label><select id="qQtd"><option>1</option><option>2</option><option>3</option></select></div>
+    <div><label>Qtd de módulos</label><input id="qMod" value="10" inputmode="numeric"></div>
+    <div><label>Potência do módulo (W)</label><input id="qW" value="610" inputmode="numeric"></div>
+  </div>
+  <div id="qRes" style="margin-top:16px"></div>
+</div>
+
+<div class="card">
+  <h2>Resumo geral</h2>
+  <div class="kpis" id="kpis"></div>
+</div>
+
+<div class="card">
+  <h2>Por combinação inversor + módulos</h2>
+  <p class="muted" style="margin:0 0 10px">Clique numa linha para jogar a combinação na consulta.</p>
+  <div class="scroll" id="tCombo"></div>
+</div>
+
+<div class="grid2">
+  <div class="card"><h2>Por tipo de ligação</h2><div class="scroll" id="tLig"></div></div>
+  <div class="card"><h2>Por inversor</h2><div class="scroll" id="tInv"></div></div>
+</div>
+<div class="card"><h2>Por faixa de potência (kWp)</h2><div class="scroll" id="tFaixa"></div></div>
+
+<div class="card">
+  <h2>Adicionar orçamentos</h2>
+  <div class="drop" id="drop">
+    <b>Arraste os PDFs das propostas aqui</b> ou clique para selecionar<br>
+    <span class="muted">Pode enviar vários de uma vez. Propostas com número repetido são atualizadas, não duplicadas.</span>
+  </div>
+  <input type="file" id="fPdf" accept="application/pdf" multiple style="display:none">
+  <div class="log" id="log"></div>
+  <div class="acoes">
+    <button id="bCsv">Exportar planilha (CSV)</button>
+    <button id="bBak">Salvar backup (.json)</button>
+    <button id="bImp">Restaurar backup</button>
+    <input type="file" id="fJson" accept="application/json" style="display:none">
+  </div>
+  <p class="muted" style="margin:10px 0 0" id="syncMsg">Os orçamentos ficam salvos no banco da ON e são a base de preço do simulador do site. A leitura de PDF precisa de internet.</p>
+</div>
+
+<div class="card">
+  <h2>Orçamentos cadastrados</h2>
+  <p class="muted" style="margin:0 0 10px">Desmarque a caixa para tirar um orçamento das médias. Os campos podem ser corrigidos se a leitura do PDF errar algo. A ligação é automática pela regra (1 inversor = mono, 2 = bi, acima de 12 kW = tri), mas pode ser trocada manualmente.</p>
+  <div class="scroll" id="tLista"></div>
+</div>
+
+</div>
+</div>
+
+<script>
+const AZ='#63A9DF';
+document.getElementById('logo').innerHTML='<svg class="logo" viewBox="28 12 154 120" xmlns="http://www.w3.org/2000/svg"><circle cx="58" cy="50" r="22" fill="'+AZ+'"/><path d="M58 102 C80 100 92 88 96 70 L96 102 Z" fill="'+AZ+'"/><polygon points="96,102 96,18 118,18 156,72 156,18 176,18 176,102 156,102 118,48 118,102" fill="'+AZ+'"/><text x="125" y="128" text-anchor="middle" font-family="Segoe UI,Arial" font-size="13" font-weight="600" letter-spacing="2.5" fill="'+AZ+'">ENGENHARIA</text></svg>';
+
+const SEED=[
+ {id:'P26702',data:'2026-10-13',cliente:'LACIR LAGEMANN - INTERIOR',cidade:'Ibirubá/RS',kwp:21.96,modQtd:36,invQtd:1,invKw:20,invDesc:'SOLIS 20kW TRIFÁSICO',valor:55043.85,telhado:'Fibrocimento',ligConta:'Trifásico'},
+ {id:'P26705',data:'2026-10-19',cliente:'Thiago Mendes',cidade:'Quinze de Novembro/RS',kwp:3.66,modQtd:6,invQtd:1,invKw:4,invDesc:'SOFAR 4kW MONOFÁSICO',valor:10000,telhado:'Cerâmico',ligConta:'Monofásico'},
+ {id:'P26706',data:'2026-10-20',cliente:'SADI NICOLA DOS SANTOS',cidade:'Ibirubá/RS',kwp:6.10,modQtd:10,invQtd:1,invKw:5,invDesc:'SOFAR 5KW MONOFÁSICO',valor:16500,telhado:'Cerâmico',ligConta:'Monofásico'},
+ {id:'P26707',data:'2026-10-20',cliente:'LUISE BUDKE BOURSCHEID - CASA DO LUIS',cidade:'Ibirubá/RS',kwp:9.76,modQtd:16,invQtd:1,invKw:7.5,invDesc:'DEYE 7,5KW TRI',valor:35000,telhado:'Solo / Fibrocimento',ligConta:'Bifásico'},
+ {id:'P26709',data:'2026-10-21',cliente:'Carlos Eduardo Elicker da Silva',cidade:'Ibirubá/RS',kwp:4.88,modQtd:8,invQtd:2,invKw:3.3,invDesc:'2× SOFAR 3.3 kW MONOFÁSICO',valor:15000,telhado:'Cerâmico',ligConta:'Bifásico'},
+ {id:'P26710',data:'2026-10-21',cliente:'Carlos Eduardo Elicker da Silva',cidade:'Ibirubá/RS',kwp:4.88,modQtd:8,invQtd:2,invKw:3.3,invDesc:'2× SOFAR 3.3 kW MONOFÁSICO',valor:14500,telhado:'Metálico',ligConta:'Bifásico'},
+ {id:'P26711',data:'2026-10-21',cliente:'ANDERSON DANIEL FERNANDES',cidade:'Tapera/RS',kwp:6.10,modQtd:10,invQtd:1,invKw:6,invDesc:'SOFAR 6kW MONOFÁSICO',valor:17000,telhado:'Cerâmico',ligConta:'Monofásico'},
+ {id:'P26720',data:'2026-10-22',cliente:'LEANDRO LAGEMANN',cidade:'Ibirubá/RS',kwp:21.96,modQtd:36,invQtd:1,invKw:15,invDesc:'SOLIS 15KW TRI',valor:67500,telhado:'Cerâmico',ligConta:'Trifásico'}
+];
+const SB="https://qphayphqrwyvhesykpmb.supabase.co",SBK="sb_publishable_xOlRcmtdSVpXPxFjLHr4bA_VkAdGQIE";
+const H={apikey:SBK,Authorization:"Bearer "+SBK,"Content-Type":"application/json"};
+let SENHA=null;try{SENHA=sessionStorage.getItem("onSenha")}catch(e){}
+async function rpc(fn,body){const r=await fetch(SB+"/rest/v1/rpc/"+fn,{method:"POST",headers:H,body:JSON.stringify(body)});if(!r.ok){const t=await r.text();throw new Error(/senha/.test(t)?"senha":"erro")}return r.status===204?null:r.json()}
+let dados=[];let tSalvar=null;
+function salvar(){clearTimeout(tSalvar);document.getElementById('syncMsg').textContent='Salvando…';
+  tSalvar=setTimeout(async()=>{try{await rpc("sim_orc_salvar",{senha:SENHA,itens:dados.map(d=>({...d,lig:tipo(d)}))});document.getElementById('syncMsg').textContent='Salvo no banco da ON. O simulador do site já usa estes valores.'}
+    catch(e){document.getElementById('syncMsg').textContent='Não foi possível salvar. Confira a internet e tente de novo.'}},600)}
+
+const $=id=>document.getElementById(id);
+const R=v=>v==null||isNaN(v)?'—':v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const R0=v=>v==null||isNaN(v)?'—':v.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+const N=(v,d=2)=>v==null||isNaN(v)?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function numBR(s){s=String(s).trim();if(!s)return NaN;if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');return parseFloat(s)}
+function tipoRegra(kw,qtd){if((kw||0)>12)return 'Trifásico';if((qtd||0)>=2)return 'Bifásico';return 'Monofásico'}
+function tipoAuto(d){return tipoRegra(d.invKw,d.invQtd)}
+function tipo(d){return d.tipoManual||tipoAuto(d)}
+function rwp(d){return d.kwp>0?d.valor/(d.kwp*1000):NaN}
+function kwTxt(k){return N(k,k%1?1:0)}
+function invLabel(d){return (d.invQtd>1?d.invQtd+'× ':'')+kwTxt(d.invKw)+' kW'}
+function ativos(){return dados.filter(d=>d.ativo&&d.valor>0&&d.kwp>0)}
+function mediana(a){const s=[...a].sort((x,y)=>x-y),m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2}
+const mesmoInv=(d,kw,q)=>d.invQtd==q&&Math.abs(d.invKw-kw)<0.05;
+
+function consulta(){
+  const kw=numBR($('qKw').value),q=parseInt($('qQtd').value),mod=parseInt($('qMod').value),w=numBR($('qW').value);
+  const out=$('qRes');
+  if(!(kw>0)||!(mod>0)||!(w>0)){out.innerHTML='<p class="aviso" style="display:inline-block;padding:6px 10px">Preencha potência do inversor, quantidade e potência dos módulos.</p>';return}
+  const kwp=mod*w/1000,tp=tipoRegra(kw,q),at=ativos();
+  const exatos=at.filter(d=>mesmoInv(d,kw,q)&&d.modQtd==mod);
+  const inv=at.filter(d=>mesmoInv(d,kw,q)&&d.modQtd!=mod);
+  let pool=at.filter(d=>tipo(d)===tp);if(pool.length<3)pool=at;
+  const viz=[...pool].sort((a,b)=>Math.abs(a.kwp-kwp)-Math.abs(b.kwp-kwp)).slice(0,3);
+  const ws=viz.map(rwp),med=ws.length?mediana(ws):NaN;
+  const est=kwp*1000*med,emin=kwp*1000*Math.min(...ws),emax=kwp*1000*Math.max(...ws);
+  let h='<div class="kpis">';
+  h+='<div class="kpi"><div class="l">Sistema consultado</div><div class="v">'+N(kwp)+' kWp</div><div class="s">'+(q>1?q+'× ':'')+kwTxt(kw)+' kW · '+mod+' módulos de '+w+' W · '+tp+'</div></div>';
+  if(exatos.length){const vs=exatos.map(d=>d.valor),m=vs.reduce((s,x)=>s+x,0)/vs.length,mw=exatos.reduce((s,d)=>s+rwp(d),0)/exatos.length;
+    h+='<div class="kpi dest"><div class="l">Média de orçamentos iguais ('+exatos.length+')</div><div class="v">'+R(m)+'</div><div class="s">'+R(mw)+'/Wp'+(exatos.length>1?' · de '+R0(Math.min(...vs))+' a '+R0(Math.max(...vs)):' · apenas 1 orçamento')+'</div></div>';
+    h+='<div class="kpi"><div class="l">Estimativa por semelhantes</div><div class="v">'+R0(est)+'</div><div class="s">'+R(med)+'/Wp · faixa '+R0(emin)+' a '+R0(emax)+'</div></div>';
+  }else{
+    h+='<div class="kpi dest"><div class="l">Estimativa (sem orçamento igual)</div><div class="v">'+R0(est)+'</div><div class="s">'+R(med)+'/Wp · faixa '+R0(emin)+' a '+R0(emax)+'</div></div>';
+  }
+  h+='</div>';
+  if(exatos.length){h+='<h3>Orçamentos iguais</h3>'+mini(exatos)}
+  if(inv.length){h+='<h3>Mesmo inversor, outra quantidade de módulos</h3>'+mini(inv)}
+  h+='<h3>Base da estimativa (3 mais parecidos'+(pool.length<at.length?', ligação '+tp:'')+')</h3>'+mini(viz);
+  if(exatos.length<3)h+='<p class="nota"><span class="aviso">poucos dados</span> Com menos de 3 orçamentos iguais, use a estimativa e a faixa como referência. O resultado fica mais preciso conforme você envia mais PDFs.</p>';
+  out.innerHTML=h;
+}
+function mini(l){return '<div class="scroll"><table><tr><th>Proposta</th><th>Cliente</th><th>Inversor</th><th class="n">Módulos</th><th class="n">kWp</th><th class="n">Valor</th><th class="n">R$/Wp</th></tr>'
+  +l.map(d=>'<tr><td>'+esc(d.id)+'</td><td>'+esc(d.cliente)+'</td><td>'+invLabel(d)+'</td><td class="n">'+(d.modQtd||'—')+'</td><td class="n">'+N(d.kwp)+'</td><td class="n">'+R(d.valor)+'</td><td class="n">'+N(rwp(d))+'</td></tr>').join('')+'</table></div>'}
+
+function agrupa(lista,chave,ordem){
+  const g={};lista.forEach(d=>{const k=chave(d);(g[k]=g[k]||[]).push(d)});
+  return Object.keys(g).sort(ordem).map(k=>{const a=g[k];const vs=a.map(x=>x.valor),ws=a.map(rwp);
+    return{k,a,n:a.length,mv:vs.reduce((s,x)=>s+x,0)/a.length,mw:ws.reduce((s,x)=>s+x,0)/a.length,
+      mk:a.reduce((s,x)=>s+x.kwp,0)/a.length,minv:Math.min(...vs),maxv:Math.max(...vs),minw:Math.min(...ws),maxw:Math.max(...ws)}});
+}
+function tabelaGrupo(rows,titulo){
+  if(!rows.length)return '<p class="muted">Sem dados.</p>';
+  return '<table><tr><th>'+titulo+'</th><th class="n">Qtd</th><th class="n">kWp médio</th><th class="n">Valor médio</th><th class="n">R$/Wp médio</th><th class="n">R$/Wp mín–máx</th></tr>'
+   +rows.map(r=>'<tr><td>'+esc(r.k)+(r.n<3?' <span class="aviso">poucos dados</span>':'')+'</td><td class="n">'+r.n+'</td><td class="n">'+N(r.mk)+'</td><td class="n">'+R(r.mv)+'</td><td class="n">'+R(r.mw)+'</td><td class="n">'+N(r.minw)+' – '+N(r.maxw)+'</td></tr>').join('')+'</table>';
+}
+function faixa(k){if(k<4)return 'Até 4 kWp';if(k<6)return '4 a 6 kWp';if(k<8)return '6 a 8 kWp';if(k<12)return '8 a 12 kWp';if(k<20)return '12 a 20 kWp';return 'Acima de 20 kWp'}
+const ordemFaixa=['Até 4 kWp','4 a 6 kWp','6 a 8 kWp','8 a 12 kWp','12 a 20 kWp','Acima de 20 kWp'];
+const totInv=l=>{const m=l.match(/^(?:(\d+)× )?([\d,]+)/);return m?(m[1]?+m[1]:1)*parseFloat(m[2].replace(',','.')):0};
+
+function render(){
+  const at=ativos();
+  const tot=at.reduce((s,d)=>s+d.valor,0);
+  $('kpis').innerHTML=[
+    ['Orçamentos nas médias',at.length+' de '+dados.length],
+    ['Valor médio',R(at.length?tot/at.length:NaN)],
+    ['R$/Wp médio',R(at.length?at.reduce((s,d)=>s+rwp(d),0)/at.length:NaN)],
+    ['R$/Wp ponderado',R(at.length?tot/(at.reduce((s,d)=>s+d.kwp,0)*1000):NaN)],
+    ['kWp médio',N(at.length?at.reduce((s,d)=>s+d.kwp,0)/at.length:NaN)]
+  ].map(k=>'<div class="kpi"><div class="l">'+k[0]+'</div><div class="v">'+k[1]+'</div></div>').join('');
+
+  const combos=agrupa(at,d=>invLabel(d)+' | '+(d.modQtd||0),(a,b)=>{const[ia,ma]=a.split(' | '),[ib,mb]=b.split(' | ');return totInv(ia)-totInv(ib)||(+ma)-(+mb)});
+  $('tCombo').innerHTML=combos.length?'<table><tr><th>Inversor</th><th class="n">Módulos</th><th>Ligação</th><th class="n">Qtd</th><th class="n">kWp</th><th class="n">Valor médio</th><th class="n">Mín – máx</th><th class="n">R$/Wp médio</th></tr>'
+    +combos.map(r=>{const d=r.a[0];return '<tr class="clic" data-kw="'+d.invKw+'" data-q="'+d.invQtd+'" data-m="'+(d.modQtd||'')+'" data-w="'+(d.modQtd?Math.round(d.kwp*1000/d.modQtd):610)+'"><td>'+invLabel(d)+'</td><td class="n">'+(d.modQtd||'—')+'</td><td>'+tipo(d)+'</td><td class="n">'+r.n+(r.n<3?' <span class="aviso">poucos</span>':'')+'</td><td class="n">'+N(r.mk)+'</td><td class="n"><b>'+R(r.mv)+'</b></td><td class="n">'+(r.n>1?R0(r.minv)+' – '+R0(r.maxv):'—')+'</td><td class="n">'+R(r.mw)+'</td></tr>'}).join('')+'</table>':'<p class="muted">Sem dados.</p>';
+
+  const oL=['Monofásico','Bifásico','Trifásico'];
+  $('tLig').innerHTML=tabelaGrupo(agrupa(at,tipo,(a,b)=>oL.indexOf(a)-oL.indexOf(b)),'Ligação');
+  $('tInv').innerHTML=tabelaGrupo(agrupa(at,invLabel,(a,b)=>totInv(a)-totInv(b)),'Inversor');
+  $('tFaixa').innerHTML=tabelaGrupo(agrupa(at,d=>faixa(d.kwp),(a,b)=>ordemFaixa.indexOf(a)-ordemFaixa.indexOf(b)),'Faixa');
+
+  const lista=[...dados].sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+  $('tLista').innerHTML='<table><tr><th></th><th>Proposta</th><th>Data</th><th>Cliente</th><th>Cidade</th><th class="n">kWp</th><th class="n">Módulos</th><th class="n">Qtd inv.</th><th class="n">kW inv.</th><th>Ligação</th><th class="n">Valor (R$)</th><th class="n">R$/Wp</th><th></th></tr>'
+   +lista.map(d=>{const i=dados.indexOf(d);const t=tipo(d);
+    return '<tr class="'+(d.ativo?'':'off')+'"><td><input type="checkbox" data-i="'+i+'" data-f="ativo" '+(d.ativo?'checked':'')+'></td>'
+    +'<td>'+esc(d.id)+'</td><td>'+(d.data?d.data.split('-').reverse().join('/'):'—')+'</td>'
+    +'<td title="'+esc(d.invDesc)+'">'+esc(d.cliente)+(d.ligConta&&d.ligConta!==t?' <span class="aviso">conta: '+esc(d.ligConta)+'</span>':'')+'</td>'
+    +'<td>'+esc(d.cidade)+'</td>'
+    +'<td class="n"><input class="ed" data-i="'+i+'" data-f="kwp" value="'+N(d.kwp)+'"></td>'
+    +'<td class="n"><input class="ed" data-i="'+i+'" data-f="modQtd" value="'+(d.modQtd||'')+'"></td>'
+    +'<td class="n"><input class="ed" data-i="'+i+'" data-f="invQtd" value="'+(d.invQtd||'')+'"></td>'
+    +'<td class="n"><input class="ed" data-i="'+i+'" data-f="invKw" value="'+N(d.invKw,1)+'"></td>'
+    +'<td><select class="ed" data-i="'+i+'" data-f="tipoManual"><option value="">Auto ('+tipoAuto(d)+')</option>'+oL.map(o=>'<option'+(d.tipoManual===o?' selected':'')+'>'+o+'</option>').join('')+'</select></td>'
+    +'<td class="n"><input class="ed w" data-i="'+i+'" data-f="valor" value="'+N(d.valor)+'"></td>'
+    +'<td class="n">'+N(rwp(d))+'</td>'
+    +'<td><button class="del" data-del="'+i+'" title="Excluir">✕</button></td></tr>'}).join('')+'</table>';
+  consulta();
+}
+['qKw','qQtd','qMod','qW'].forEach(id=>$(id).addEventListener('input',consulta));
+$('tCombo').addEventListener('click',e=>{const tr=e.target.closest('tr.clic');if(!tr)return;
+  $('qKw').value=N(+tr.dataset.kw,tr.dataset.kw%1?1:0);$('qQtd').value=tr.dataset.q;$('qMod').value=tr.dataset.m;$('qW').value=tr.dataset.w;
+  consulta();window.scrollTo({top:0,behavior:'smooth'})});
+$('tLista').addEventListener('change',e=>{const el=e.target,i=el.dataset.i,f=el.dataset.f;if(i==null)return;const d=dados[i];
+  if(f==='ativo')d.ativo=el.checked;else if(f==='tipoManual')d.tipoManual=el.value;
+  else if(f==='modQtd'||f==='invQtd')d[f]=parseInt(el.value)||0;else d[f]=numBR(el.value);
+  salvar();render()});
+$('tLista').addEventListener('click',e=>{const i=e.target.dataset.del;if(i==null)return;
+  if(confirm('Excluir a proposta '+dados[i].id+'?')){dados.splice(i,1);salvar();render()}});
+
+if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+async function pdfTexto(file){
+  const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;let out='';
+  for(let p=1;p<=pdf.numPages;p++){const tc=await (await pdf.getPage(p)).getTextContent();let l='';
+    tc.items.forEach(it=>{l+=it.str;if(it.hasEOL){out+=l+'\n';l=''}else if(it.str&&!/\s$/.test(it.str))l+=' '});out+=l+'\n'}
+  return out.replace(/[ \t]+/g,' ');
+}
+function extrai(txt){
+  const linhas=txt.split('\n').map(s=>s.trim()).filter(Boolean);
+  const m=(re)=>{const r=txt.match(re);return r?r[1].trim():''};
+  const d={ativo:true,tipoManual:''};
+  d.id=m(/N[úu]mero da proposta\s*(P\d+)/i)||m(/\b(P\d{4,})\s+de\s+\d{2}\//);
+  const dt=txt.match(/P\d+\s+de\s+(\d{2})\/(\d{2})\/(\d{4})/);d.data=dt?dt[3]+'-'+dt[2]+'-'+dt[1]:'';
+  const iv=linhas.findIndex(l=>/A proposta é válida/i.test(l));
+  d.cliente=iv>0?linhas[iv-1].replace(/A proposta.*$/i,'').trim():'';
+  if(!d.cliente||d.cliente.length<3){const a=txt.match(/ON Engenharia e o\(a\)\s*([\s\S]+?)\s*firmam/i);d.cliente=a?a[1].replace(/\s+/g,' '):''}
+  d.valor=numBR(m(/Valor total da proposta:?\s*R\$\s*([\d.]+,\d{2})/i));
+  d.kwp=numBR(m(/Pot[êe]ncia:\s*([\d.,]+)\s*kWp/i)||m(/dimensionado\s*([\d.,]+)\s*kWp/i));
+  d.cidade=m(/Localidade da usina\s*([^\n]+)/i);
+  d.telhado=m(/Telhado:\s*([^\n]+)/i);
+  const lc=txt.match(/(Monof[áa]sico|Bif[áa]sico|Trif[áa]sico)/i);d.ligConta=lc?lc[1].charAt(0).toUpperCase()+lc[1].slice(1).toLowerCase():'';
+  const ini=linhas.findIndex(l=>/Os produtos/i.test(l)),fim=linhas.findIndex((l,k)=>k>ini&&/Valor total da proposta/i.test(l));
+  const prod=linhas.slice(ini<0?0:ini,fim<0?undefined:fim);
+  d.modQtd=0;d.invQtd=0;d.invKw=0;const invs=[];
+  prod.forEach(l=>{const q=l.match(/^0*(\d+)\s+(.+)/);if(!q)return;const qtd=+q[1],resto=q[2];
+    if(/m[óo]dulo|painel|\d{3}\s*W\b|\d{3}\s*Wp/i.test(resto)&&!/inversor/i.test(resto)){if(!d.modQtd)d.modQtd=qtd;return}
+    const k=resto.match(/(\d+(?:[.,]\d+)?)\s*kW(?![hp])/i);
+    if(k&&!/cabo|conector|estrutura|grampo/i.test(resto)){d.invQtd+=qtd;d.invKw=Math.max(d.invKw,parseFloat(k[1].replace(',','.')));invs.push((qtd>1?qtd+'× ':'')+resto)}});
+  d.invDesc=invs.join(' + ');
+  return d;
+}
+async function processa(files){
+  const log=$('log');
+  if(!window.pdfjsLib){log.innerHTML='<div class="er">Não foi possível carregar o leitor de PDF. Verifique a conexão com a internet.</div>';return}
+  for(const f of files){
+    try{const d=extrai(await pdfTexto(f));const falt=[];
+      if(!d.id)falt.push('número');if(!(d.valor>0))falt.push('valor');if(!(d.kwp>0))falt.push('kWp');if(!d.invQtd)falt.push('inversor');if(!d.modQtd)falt.push('módulos');
+      if(!d.id)d.id=f.name.replace(/\.pdf$/i,'');
+      const ex=dados.findIndex(x=>x.id===d.id);
+      if(ex>=0){d.ativo=dados[ex].ativo;d.tipoManual=dados[ex].tipoManual;dados[ex]=d}else dados.push(d);
+      log.insertAdjacentHTML('afterbegin','<div class="'+(falt.length?'er':'ok')+'">'+esc(f.name)+': '+(ex>=0?'atualizada':'adicionada')+' ('+esc(d.id)+' · '+invLabel(d)+' · '+(d.modQtd||'?')+' módulos · '+R(d.valor)+')'+(falt.length?' — confira: '+falt.join(', '):'')+'</div>');
+    }catch(err){log.insertAdjacentHTML('afterbegin','<div class="er">'+esc(f.name)+': não consegui ler este PDF.</div>')}
+  }
+  salvar();render();
+}
+const drop=$('drop');
+drop.onclick=()=>$('fPdf').click();
+$('fPdf').onchange=e=>{processa([...e.target.files]);e.target.value=''};
+drop.ondragover=e=>{e.preventDefault();drop.classList.add('over')};
+drop.ondragleave=()=>drop.classList.remove('over');
+drop.ondrop=e=>{e.preventDefault();drop.classList.remove('over');processa([...e.dataTransfer.files].filter(f=>/pdf$/i.test(f.type)||/\.pdf$/i.test(f.name)))};
+
+function baixa(nome,conteudo,tipo){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([conteudo],{type:tipo}));a.download=nome;document.body.appendChild(a);a.click();a.remove()}
+$('bCsv').onclick=()=>{const cab=['Proposta','Data','Cliente','Cidade','kWp','Módulos','Qtd inversores','kW inversor','Inversor','Ligação (regra)','Ligação (conta)','Telhado','Valor','R$/Wp','Nas médias'];
+  const lin=dados.map(d=>[d.id,d.data,d.cliente,d.cidade,N(d.kwp),d.modQtd,d.invQtd,N(d.invKw,1),d.invDesc,tipo(d),d.ligConta,d.telhado,N(d.valor),N(rwp(d)),d.ativo?'Sim':'Não'].map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';'));
+  baixa('orcamentos_solar.csv','\ufeff'+[cab.join(';'),...lin].join('\n'),'text/csv')};
+$('bBak').onclick=()=>baixa('backup_orcamentos_solar.json',JSON.stringify(dados,null,1),'application/json');
+$('bImp').onclick=()=>$('fJson').click();
+$('fJson').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{const j=JSON.parse(t);if(Array.isArray(j)){dados=j;salvar();render();alert('Backup restaurado.')}}catch(err){alert('Arquivo de backup inválido.')}});e.target.value=''};
+
+/* ===== login ===== */
+async function entrar(s){const ok=await rpc("painel_ok",{senha:s});if(!ok)return false;SENHA=s;try{sessionStorage.setItem("onSenha",s)}catch(e){}
+  const l=await rpc("sim_orc_listar",{senha:s});dados=Array.isArray(l)&&l.length?l:SEED.map(d=>({...d,ativo:true,tipoManual:''}));
+  $('login').hidden=true;$('app').hidden=false;render();carregaTarifas();carregaLeads();return true}
+$('fLogin').onsubmit=async e=>{e.preventDefault();$('loginMsg').textContent='Verificando…';
+  try{if(!(await entrar($('senha').value)))$('loginMsg').textContent='Senha incorreta.'}catch(err){$('loginMsg').textContent='Não foi possível conectar. Confira a internet.'}};
+if(SENHA)entrar(SENHA).catch(()=>{});
+
+/* ===== tarifas ===== */
+let TAR=[];
+async function carregaTarifas(){try{const r=await fetch(SB+"/rest/v1/painel_itens?colecao=eq.sim&id=eq.tarifas&select=dados",{headers:H});const j=await r.json();const d=j[0]?.dados||{};
+  TAR=d.itens||[];$('imp').value=N((d.imposto??0.22)*100,1);$('tFonte').value=d.fonte||'';renderTar()}catch(e){}}
+function renderTar(){$('tTar').innerHTML='<table><tr><th>Concessionária</th><th>UF</th><th class="n">R$/kWh (sem impostos)</th><th class="n">Com impostos</th><th>Vigência</th><th></th></tr>'
+  +TAR.map((t,i)=>'<tr><td><input class="ed" style="width:170px;text-align:left" data-t="'+i+'" data-k="nome" value="'+esc(t.nome)+'"></td><td><input class="ed" style="width:50px;text-align:left" data-t="'+i+'" data-k="uf" value="'+esc(t.uf)+'"></td><td class="n"><input class="ed" data-t="'+i+'" data-k="tarifa" value="'+N(t.tarifa,3)+'"></td><td class="n">'+N(t.tarifa/(1-numBR($('imp').value||'22')/100),3)+'</td><td><input class="ed" type="date" style="width:140px" data-t="'+i+'" data-k="vigencia" value="'+esc(t.vigencia||'')+'"></td><td><button class="del" data-tdel="'+i+'" title="Remover">✕</button></td></tr>').join('')+'</table>'}
+$('tTar').addEventListener('change',e=>{const i=e.target.dataset.t,k=e.target.dataset.k;if(i==null)return;TAR[i][k]=k==='tarifa'?numBR(e.target.value):k==='uf'?e.target.value.toUpperCase().slice(0,2):e.target.value;$('tarMsg').textContent='Alterações não salvas';renderTar()});
+$('tTar').addEventListener('click',e=>{const i=e.target.dataset.tdel;if(i==null)return;TAR.splice(i,1);$('tarMsg').textContent='Alterações não salvas';renderTar()});
+$('imp').addEventListener('input',()=>{$('tarMsg').textContent='Alterações não salvas';renderTar()});
+$('bTarAdd').onclick=()=>{TAR.push({nome:'',uf:'RS',tarifa:0,vigencia:''});renderTar()};
+$('bTarSave').onclick=async()=>{const itens=TAR.filter(t=>t.nome&&t.tarifa>0);$('tarMsg').textContent='Salvando…';
+  try{await rpc("painel_salvar",{senha:SENHA,colecao:"sim",id:"tarifas",dados:{itens,imposto:numBR($('imp').value)/100,fonte:$('tFonte').value,atualizado:new Date().toISOString().slice(0,10)}});TAR=itens;renderTar();$('tarMsg').textContent='Tarifas salvas. O simulador já usa os novos valores.'}
+  catch(e){$('tarMsg').textContent='Não foi possível salvar.'}};
+
+/* ===== contatos do simulador ===== */
+let LEADS=[];const ST=['novo','em contato','proposta enviada','fechado','perdido'];
+async function carregaLeads(){$('leadsInfo').textContent='Carregando…';try{LEADS=await rpc("sim_leads_listar",{senha:SENHA})||[];renderLeads()}catch(e){$('leadsInfo').textContent='Não foi possível carregar.'}}
+function renderLeads(){const h=new Date(Date.now()-864e5);$('leadsInfo').textContent=LEADS.length+' contatos · '+LEADS.filter(l=>new Date(l.criado)>h).length+' nas últimas 24h';
+  if(!LEADS.length){$('tLeads').innerHTML='<p class="muted">Nenhum contato ainda.</p>';return}
+  $('tLeads').innerHTML='<table><tr><th>Data</th><th>Nome</th><th>WhatsApp</th><th>Cidade</th><th>Concessionária</th><th>Ligação</th><th>Telhado</th><th class="n">Conta</th><th class="n">kWp</th><th class="n">Estimativa</th><th>Origem</th><th>Status</th></tr>'
+   +LEADS.map((l,i)=>'<tr><td>'+new Date(l.criado).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+'</td><td>'+esc(l.nome)+(l.email?'<div class="muted">'+esc(l.email)+'</div>':'')+'</td><td><a href="https://wa.me/55'+String(l.telefone||'').replace(/\D/g,'')+'" target="_blank" rel="noopener">'+esc(l.telefone)+'</a></td><td>'+esc([l.cidade,l.estado].filter(Boolean).join('/'))+'</td><td>'+esc(l.concessionaria||'—')+'</td><td>'+esc(l.ligacao||'—')+'</td><td>'+esc(l.telhado||'—')+'</td><td class="n">'+(l.conta_rs?R0(+l.conta_rs):'—')+'</td><td class="n">'+(l.kwp?N(+l.kwp):'<span class="aviso">parou no contato</span>')+'</td><td class="n">'+(l.valor_estimado?R0(+l.valor_estimado):'—')+'</td><td>'+esc(l.origem||'')+'</td><td><select class="ed" data-lead="'+i+'">'+ST.map(s=>'<option'+(l.status===s?' selected':'')+'>'+s+'</option>').join('')+'</select></td></tr>').join('')+'</table>'}
+$('tLeads').addEventListener('change',async e=>{const i=e.target.dataset.lead;if(i==null)return;try{await rpc("sim_lead_status",{senha:SENHA,p_id:LEADS[i].id,p_status:e.target.value});LEADS[i].status=e.target.value}catch(err){alert('Não foi possível salvar o status.')}});
+$('bLeads').onclick=carregaLeads;
+$('bLeadsCsv').onclick=()=>{const cab=['Data','Nome','WhatsApp','E-mail','Cidade','UF','Concessionária','Ligação','Telhado','Consumo kWh','Conta R$','kWp','Módulos','Inversor','Estimativa','Mín','Máx','Economia/mês','Origem','Status'];
+  const lin=LEADS.map(l=>[new Date(l.criado).toLocaleString('pt-BR'),l.nome,l.telefone,l.email,l.cidade,l.estado,l.concessionaria,l.ligacao,l.telhado,l.consumo_kwh,l.conta_rs,l.kwp,l.modulos,l.inversor,l.valor_estimado,l.valor_min,l.valor_max,l.economia_mes,l.origem,l.status].map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';'));
+  baixa('contatos_simulador.csv','\ufeff'+[cab.join(';'),...lin].join('\n'),'text/csv')};
+</script>
+</body>
+</html>
