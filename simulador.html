@@ -225,6 +225,13 @@ $("#f2").addEventListener("submit",e=>{e.preventDefault();const err=$("#e2");err
     kwp:Math.round(kwp*100)/100,modulos:mods,inversor:N(invKw,invKw%1?1:0)+" kW",valor_estimado:r(p.est),valor_min:r(Math.min(p.min,p.est*0.93)),valor_max:r(Math.max(p.max,p.est*1.07)),economia_mes:Math.round(eco)});
   etapa(3)});
 $("#again").onclick=()=>{$("#cons").value="";etapa(2)};
+/* grava o que o cliente já preencheu na etapa 2, mesmo que não conclua a simulação */
+let tParc=null;function salvarParcial(){clearTimeout(tParc);tParc=setTimeout(()=>{const uf=$("#uf").value,cidade=$("#cidade").value.trim(),conc=$("#conc").value,v=num($("#cons").value);
+  const l=document.querySelector("[name=lig]:checked"),t=document.querySelector("[name=tel]:checked");const p={estado:uf,cidade,concessionaria:conc,ligacao:l?l.value:null,telhado:t?t.value:null};
+  if(v>0){const tarifa=((TARIFAS.find(x=>x.nome===conc)||{}).tarifa||TARIFA_PADRAO)/(1-IMPOSTO);if(unid==="kwh"){p.consumo_kwh=Math.round(v);p.conta_rs=Math.round(v*tarifa*100)/100}else{p.conta_rs=v;p.consumo_kwh=Math.round(v/tarifa)}}
+  salvar(p)},1200)}
+["#uf","#cidade","#conc","#cons"].forEach(q=>{const el=$(q);if(el){el.addEventListener("change",salvarParcial);el.addEventListener("input",salvarParcial)}});
+document.querySelectorAll("[name=lig],[name=tel],[data-u]").forEach(el=>el.addEventListener("click",salvarParcial));
 </script>
 </body>
 </html>
